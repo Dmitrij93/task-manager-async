@@ -1,0 +1,104 @@
+services:
+  # PostgreSQL 16
+  postgres:
+    image: postgres:16-alpine          # Официальный образ PostgreSQL 16
+    container_name: task_postgres
+    environment:
+      POSTGRES_DB: ${DB_NAME}            # Имя базы данных из .env
+      POSTGRES_USER: ${DB_USER}          # Пользователь БД из .env
+      POSTGRES_PASSWORD: ${DB_PASSWORD}   # Пароль БД из .env
+    ports:
+      - "5432:5432"                    # Порт 5432 хоста → 5432 контейнера
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # Постоянное хранение данных БД
+    healthcheck:                       # Проверка что БД готова к работе
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app_network
+
+    # RabbitMQ (для очередей задач)
+  rabbitmq:
+    image: rabbitmq:3-management       # RabbitMQ с веб-интерфейсом управления
+    container_name: task_rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}  # Логин для RabbitMQ из .env
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}  # Пароль из .env
+    ports:
+      - "5672:5672"                    # AMQP порт для приложения
+      - "15672:15672"                  # Веб-интерфейс управления http://localhost:15672
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - app_network
+
+    # Python приложение (FastAPI)
+  app:
+    build: .                           # Собрать из Dockerfile в текущей папке
+    # container_name: task_app  # удалить для масштабирования
+    depends_on:                        # Запускать только после готовности БД
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+    environment:
+      # Все переменные читаются из .env файла
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_NAME=${DB_NAME}
+      - RABBITMQ_USER=${RABBITMQ_USER}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+      - RABBITMQ_HOST=${RABBITMQ_HOST}
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
+      - ENVIRONMENT=${ENVIRONMENT}
+      - SECRET_KEY=${SECRET_KEY}
+    ports:
+      - "8000:8000"                    # FastAPI API http://localhost:8000
+    volumes:
+      - .:/app                         # Монтируем код для разработки (hot reload)
+    networks:
+      - app_network
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
+  # Worker (RabbitMQ consumer)
+  worker:
+    build: .
+    # container_name: task_worker  # удалить для масштабирования
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+    environment:
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_NAME=${DB_NAME}
+      - RABBITMQ_USER=${RABBITMQ_USER}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+      - RABBITMQ_HOST=${RABBITMQ_HOST}
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
+      - ENVIRONMENT=${ENVIRONMENT}
+      - SECRET_KEY=${SECRET_KEY}
+    volumes:
+      - .:/app                         # Монтируем код для разработки (hot reload)
+    networks:
+      - app_network
+    command: >
+      sh -c "alembic upgrade head &&
+             python -u worker.py"
+
+volumes:
+  postgres_data:                       # Постоянное хранение данных PostgreSQL
+  rabbitmq_data:                       # Постоянное хранение данных RabbitMQ
+
+networks:
+  app_network:                         # Внутренняя сеть для связи контейнеров
+    driver: bridge
+
+

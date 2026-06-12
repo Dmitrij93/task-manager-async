@@ -1,0 +1,22 @@
+# --- Web Framework ---
+fastapi==0.115.0          # Основной веб-фреймворк
+uvicorn[standard]==0.30.6 # ASGI-сервер для запуска FastAPI
+                          # [standard] включает uvloop (быстрый event loop) и httptools (быстрый парсер HTTP)
+
+# --- Database ---
+sqlalchemy[asyncio]==2.0.36  # ORM, [asyncio] включает поддержку async/await
+asyncpg==0.29.0              # Асинхронный драйвер PostgreSQL (для всех окружений)
+alembic==1.13.3              # Система миграций базы данных
+greenlet==3.1.1              # Требуется SQLAlchemy для работы async-режима
+
+# --- RabbitMQ ---
+aio-pika==9.4.3   # Асинхронный клиент для RabbitMQ поверх asyncio
+
+# --- Config / Env ---
+pydantic-settings==2.5.2  # Управление конфигурацией через переменные окружения (.env)
+python-dotenv==1.0.1      # Загружает переменные из файла .env в os.environ
+
+# --- Testing ---
+pytest==8.3.3              # Фреймворк для unit и интеграционных тестов
+pytest-asyncio==0.24.0     # Поддержка async def в тестах pytest
+httpx==0.27.2              # Асинхронный HTTP-клиент, нужен для тестирования FastAPI через TestClient

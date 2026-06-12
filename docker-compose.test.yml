@@ -1,0 +1,95 @@
+services:
+  # PostgreSQL для интеграционных тестов
+  test_postgres:
+    image: postgres:16-alpine
+    container_name: test_task_postgres
+    environment:
+      POSTGRES_DB: test_tasks_db
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: test_password
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./scripts/init_test_dbs.sql:/docker-entrypoint-initdb.d/01-init.sql
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test_user"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - test_network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # RabbitMQ для интеграционных тестов
+  test_rabbitmq:
+    image: rabbitmq:3-management
+    container_name: test_task_rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: test_rabbit_user
+      RABBITMQ_DEFAULT_PASS: test_rabbit_password
+    ports:
+      - "5673:5672"
+      - "15673:15672"
+    tmpfs:
+      - /var/lib/rabbitmq
+    networks:
+      - test_network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # Python приложение (для запуска тестов в Docker)
+  app:
+    build: .
+    depends_on:
+      test_postgres:
+        condition: service_healthy
+      test_rabbitmq:
+        condition: service_started
+    environment:
+      - ENVIRONMENT=test_integration
+      - DB_USER=test_user
+      - DB_PASSWORD=test_password
+      - DB_HOST=test_postgres
+      - DB_PORT=5432
+      - DB_NAME=integration_test_db
+      - RABBITMQ_USER=test_rabbit_user
+      - RABBITMQ_PASSWORD=test_rabbit_password
+      - RABBITMQ_HOST=test_rabbitmq
+      - RABBITMQ_PORT=5672
+    volumes:
+      - .:/app
+    networks:
+      - test_network
+    command: tail -f /dev/null
+
+  # Worker для тестов
+  worker:
+    build: .
+    depends_on:
+      test_postgres:
+        condition: service_healthy
+      test_rabbitmq:
+        condition: service_started
+    environment:
+      - ENVIRONMENT=test_integration
+      - DB_USER=test_user
+      - DB_PASSWORD=test_password
+      - DB_HOST=test_postgres
+      - DB_PORT=5432
+      - DB_NAME=integration_test_db
+      - RABBITMQ_USER=test_rabbit_user
+      - RABBITMQ_PASSWORD=test_rabbit_password
+      - RABBITMQ_HOST=test_rabbitmq
+      - RABBITMQ_PORT=5672
+    volumes:
+      - .:/app
+    networks:
+      - test_network
+    command: sh -c "alembic upgrade head && python -u worker.py"
+
+networks:
+  test_network:
+    driver: bridge
