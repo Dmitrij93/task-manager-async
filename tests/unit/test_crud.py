@@ -25,7 +25,7 @@ def mock_session():
 @pytest.mark.asyncio
 async def test_create_task(mock_session):
     """Тест создания задачи через CRUD."""
-    # Данные для создания задачи
+
     task_data = TaskCreate(
         title="Test Task", description="Test Description", priority=TaskPriority.HIGH
     )
@@ -41,7 +41,6 @@ async def test_create_task(mock_session):
     # Настройка мока сессии
     mock_session.refresh.return_value = mock_task
 
-    # Вызываем метод
     result = await task_crud.create(mock_session, task_data)
 
     # Проверяем, что задача создана с правильными полями
@@ -71,7 +70,6 @@ async def test_get_by_id(mock_session):
     mock_result.scalar_one_or_none.return_value = mock_task
     mock_session.execute.return_value = mock_result
 
-    # Вызываем метод
     result = await task_crud.get_by_id(mock_session, task_id)
 
     # Проверяем, что задача найдена
@@ -115,12 +113,10 @@ async def test_get_list_with_filters(mock_session):
         status=TaskStatus.PENDING, priority=TaskPriority.HIGH, title_contains="Task"
     )
 
-    # Вызываем метод
     tasks, total = await task_crud.get_list(
         mock_session, filters=filters, page=1, size=10
     )
 
-    # Проверяем результаты
     assert len(tasks) == 2
     assert total == 2
     assert tasks[0].title == "Task 1"
@@ -146,10 +142,7 @@ async def test_update_status(mock_session):
     mock_result.scalar_one_or_none.return_value = mock_updated_task
     mock_session.execute.return_value = mock_result
 
-    # Вызываем метод
     result = await task_crud.update_status(mock_session, task_id, new_status)
-
-    # Проверяем результат
     assert result == mock_updated_task
 
     # Проверяем, что execute был вызван
@@ -174,10 +167,7 @@ async def test_cancel_task(mock_session):
     mock_result.scalar_one_or_none.return_value = mock_updated_task
     mock_session.execute.return_value = mock_result
 
-    # Вызываем метод
     result = await task_crud.cancel(mock_session, task_id)
-
-    # Проверяем результат
     assert result == mock_updated_task
     assert result.status == TaskStatus.CANCELLED
 

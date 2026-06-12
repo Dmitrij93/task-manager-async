@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-
 import asyncio
 import argparse
 import uuid
@@ -34,6 +33,18 @@ def parse_args() -> Namespace:
     return parser.parse_args()
 
 
+async def publish_tasks_to_queue(tasks: list[Task]) -> None:
+    """Публикация списка задач в RabbitMQ"""
+    for t in tasks:
+        try:
+            await rabbitmq.publish_task(
+                task_id=uuid.UUID(str(t.id)),
+                priority=t.priority if t.priority else TaskPriority.MEDIUM,
+            )
+        except Exception as e:
+            print(f"Ошибка публикации задачи {t.id}: {e}")
+
+
 async def generate_tasks(count: int = 2000) -> None:
     print(f"Генерация {count} задач...")
 
@@ -58,14 +69,7 @@ async def generate_tasks(count: int = 2000) -> None:
                 print(f"Добавлено в БД {i+1} задач...")
 
                 # Публикуем задачи в RabbitMQ ПОСЛЕ коммита
-                for t in tasks:
-                    try:
-                        await rabbitmq.publish_task(
-                            task_id=uuid.UUID(str(t.id)),
-                            priority=t.priority if t.priority else TaskPriority.MEDIUM,
-                        )
-                    except Exception as e:
-                        print(f"Ошибка публикации задачи {t.id}: {e}")
+                await publish_tasks_to_queue(tasks)
                 tasks = []
 
         # Обработка оставшихся задач
@@ -75,16 +79,8 @@ async def generate_tasks(count: int = 2000) -> None:
             print(f"Добавлено в БД {len(tasks)} задач...")
 
             # Публикуем оставшиеся задачи
-            for t in tasks:
-                try:
-                    await rabbitmq.publish_task(
-                        task_id=uuid.UUID(str(t.id)),
-                        priority=t.priority if t.priority else TaskPriority.MEDIUM,
-                    )
-                except Exception as e:
-                    print(f"Ошибка публикации задачи {t.id}: {e}")
-
-                print(f"Всего создано {count} задач и отправлено в очередь.")
+            await publish_tasks_to_queue(tasks)
+            print(f"Всего создано {count} задач и отправлено в очередь.")
 
 
 if __name__ == "__main__":

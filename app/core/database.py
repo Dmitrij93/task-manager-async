@@ -10,7 +10,9 @@ from sqlalchemy.ext.asyncio import (
 from app.core.config import settings
 from app.models import Base
 
-# Глобальные переменные для отложенной инициализации
+# Глобальные переменные для отложенной инициализации (синглтон).
+# Не рекомендуется в чистой архитектуре (затрудняет тестирование и DI),
+# но разумно здесь для простоты и предотвращения множественных подключений к БД
 _engine: Optional[AsyncEngine] = None
 _AsyncSessionLocal: Optional[async_sessionmaker] = None
 
@@ -31,7 +33,7 @@ def get_engine() -> AsyncEngine:
 
 
 def get_sessionmaker() -> async_sessionmaker:
-    """Возвращает фабрику сессий (создает при первом вызове)."""
+    """Возвращает фабрику сессий (создает при первом вызове)"""
     global _AsyncSessionLocal
     if _AsyncSessionLocal is None:
         engine = get_engine()

@@ -16,7 +16,7 @@ class TestDatabase:
         mock_session.close = AsyncMock()
 
         # Чтобы AsyncSessionLocal работал как async context manager (async with)
-        # мы должны настроить __aenter__ и __aexit__
+        # настраиваем __aenter__ и __aexit__
         mock_session.__aenter__ = AsyncMock(return_value=mock_session)
 
         # __aexit__ должен вызывать close, как это делает реальная сессия
@@ -29,9 +29,7 @@ class TestDatabase:
         mock_session_maker = MagicMock(return_value=mock_session)
 
         with patch("app.core.database.AsyncSessionLocal", mock_session_maker):
-            # Получаем генератор
             gen = get_db()
-            # Получаем сессию из генератора
             db = await gen.__anext__()
 
             # Проверяем, что сессия была создана
@@ -45,13 +43,8 @@ class TestDatabase:
             # который завершает async with и finally блок)
             await gen.aclose()
 
-            # Проверяем, что __aexit__ был вызван
-            # (это гарантирует закрытие сессии)
+            # Проверяем закрытие сессии
             mock_session.__aexit__.assert_called_once()
-
-            # Также можно проверить, что close был вызван (возможно,
-            # дважды, из-за finally блока в get_db)
-            # mock_session.close.assert_called()
 
     def test_engine_creation(self, monkeypatch):
         """Тест создания движка с правильным URL."""
@@ -67,10 +60,6 @@ class TestDatabase:
         # Импортируем Settings здесь, чтобы он подхватил
         # новые переменные окружения
         from app.core.config import Settings
-
-        # Однако, pydantic-settings кэширует конфигурацию,
-        # поэтому мы можем создать новый экземпляр
-        # Вместо этого, проверим логику формирования URL напрямую
 
         settings = Settings()
         expected_url = "postgresql+asyncpg://user:pass@localhost:5432/test_db"

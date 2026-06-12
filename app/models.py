@@ -9,23 +9,22 @@ from sqlalchemy import Enum as SAEnum
 from sqlalchemy import String, Text, func
 from sqlalchemy.orm import declarative_base
 
-# Базовый класс для всех моделей
 Base = declarative_base()
 
 
 class TaskStatus(str, Enum):
-    NEW = "NEW"  # новая задача
-    PENDING = "PENDING"  # ожидает обработки
-    IN_PROGRESS = "IN_PROGRESS"  # в процессе выполнения
-    COMPLETED = "COMPLETED"  # завершено успешно
-    FAILED = "FAILED"  # завершено с ошибкой
-    CANCELLED = "CANCELLED"  # отменено
+    NEW = "NEW"
+    PENDING = "PENDING"
+    IN_PROGRESS = "IN_PROGRESS"
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"
+    CANCELLED = "CANCELLED"
 
 
 class TaskPriority(str, Enum):
-    LOW = "LOW"  # низкий приоритет
-    MEDIUM = "MEDIUM"  # средний приоритет
-    HIGH = "HIGH"  # высокий приоритет
+    LOW = "LOW"
+    MEDIUM = "MEDIUM"
+    HIGH = "HIGH"
 
 
 class Task(Base):

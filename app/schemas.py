@@ -1,7 +1,3 @@
-"""
-Pydantic схемы для валидации данных API.
-"""
-
 import uuid
 from datetime import datetime
 from typing import Optional

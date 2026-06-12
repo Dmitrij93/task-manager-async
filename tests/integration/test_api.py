@@ -1,7 +1,6 @@
 import pytest
 
 
-# Фикстуры теперь определены в conftest.py
 @pytest.mark.asyncio
 async def test_create_task(client):
     """Тест создания задачи через API."""
@@ -26,12 +25,11 @@ async def test_create_task(client):
 @pytest.mark.asyncio
 async def test_get_task(client):
     """Тест получения задачи по ID."""
-    # Сначала создаем задачу через API
+
     task_data = {"title": "Task to Get", "description": "Get me", "priority": "MEDIUM"}
     create_response = await client.post("/api/v1/tasks", json=task_data)
     task_id = create_response.json()["id"]
 
-    # Получаем задачу по ID
     response = await client.get(f"/api/v1/tasks/{task_id}")
 
     assert response.status_code == 200
@@ -45,7 +43,7 @@ async def test_get_task(client):
 @pytest.mark.asyncio
 async def test_list_tasks(client):
     """Тест получения списка задач с фильтрацией и пагинацией."""
-    # Создаем несколько задач
+
     task_1 = {"title": "Task 1", "description": "First", "priority": "HIGH"}
     task_2 = {"title": "Task 2", "description": "Second", "priority": "MEDIUM"}
     task_3 = {"title": "Task 3", "description": "Third", "priority": "LOW"}
@@ -110,9 +108,6 @@ async def test_cancel_task(client):
     assert get_response.json()["status"] == "CANCELLED"
 
     # Попытка отменить уже отмененную задачу (или завершенную) - вернет 409
-    # Для этого создадим задачу и сразу отменим, но лучше проверить на завершенной
-    # В данном тесте мы не можем завершить задачу без воркера,
-    # поэтому проверим отмену отмененной
     cancel_again_response = await client.delete(f"/api/v1/tasks/{task_id}")
     assert cancel_again_response.status_code == 409
 

@@ -15,9 +15,8 @@ RABBITMQ_CONNECT_TIMEOUT_SECONDS = 3.0
 
 
 async def try_connect_rabbitmq() -> None:
-    """Подключемся к RabbitMQ, не блокируя запуск API.
-
-    /docs должен открываться даже если брокер ещё не поднялся.
+    """
+    Подключемся к RabbitMQ, не блокируя запуск API
     """
     try:
         await asyncio.wait_for(
@@ -25,7 +24,7 @@ async def try_connect_rabbitmq() -> None:
             timeout=RABBITMQ_CONNECT_TIMEOUT_SECONDS,
         )
     except Exception as exc:
-        # подключаемся лениво при первом publish.
+        # подключаемся лениво при первом publish
         print(f"RabbitMQ еще не готов: {exc!r}")
         return None
 

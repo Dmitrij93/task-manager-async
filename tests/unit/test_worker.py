@@ -4,8 +4,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from app.models import TaskStatus
-
-# Change import to match worker.py
 from app.worker import process_one
 
 
@@ -46,7 +44,7 @@ async def test_process_task_success():
             mock_session_local.return_value.__aenter__.return_value,
             task_id,
             TaskStatus.COMPLETED,
-            result="выполнено мгновенно",
+            result="выполнено",
         )
 
 
@@ -56,7 +54,6 @@ async def test_process_task_not_found():
     task_id = uuid.uuid4()
 
     with patch("app.worker.task_crud") as mock_crud:
-        # Используем AsyncMock для асинхронных методов
         mock_crud.get_by_id = AsyncMock(return_value=None)
 
         with patch("app.worker.AsyncSessionLocal") as mock_session_local:
@@ -65,5 +62,4 @@ async def test_process_task_not_found():
 
             await process_one(task_id)
 
-        # Проверяем, что статус задачи не обновлялся (так как задача не найдена)
         mock_crud.update_status.assert_not_called()

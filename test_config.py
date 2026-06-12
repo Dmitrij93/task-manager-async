@@ -1,8 +1,4 @@
-﻿"""
-Конфигурация тестовых окружений
-"""
-
-import os
+﻿import os
 from typing import Any
 
 from app.core.config import Settings
@@ -16,10 +12,12 @@ class TestSettings(Settings):
 
     def __init__(self, test_type: str = "unit", **data: Any):
         super().__init__(**data)
-        # Устанавливаем приватный атрибут после инициализации родителя
+        # Устанавливаем приватный атрибут, Pydantic не позволяет делать это напрямую
         object.__setattr__(self, "_test_type", test_type)
 
-        # В Pydantic v2 устанавливаем окружение перед инициализацией родителя
+        # Перезагружаем конфигурацию с новым ENVIRONMENT перед завершением
+        # инициализации родителя для Pydantic V2, чтобы корректно сработала
+        # логика свойств
         if test_type == "unit":
             os.environ["ENVIRONMENT"] = "test"
         elif test_type == "integration":
@@ -33,8 +31,6 @@ class TestSettings(Settings):
     def database_url(self) -> str:
         """URL базы данных в зависимости от типа теста"""
         if self.test_type == "unit":
-            # Для unit-тестов используем тестовую базу данных
-            # Если запущено в Docker, используем хост из окружения
             db_host = os.environ.get("DB_HOST", "localhost")
             db_port = os.environ.get("DB_PORT", "5433")
             return (
@@ -42,7 +38,6 @@ class TestSettings(Settings):
                 f"{db_host}:{db_port}/unit_test_db"
             )
         elif self.test_type == "integration":
-            # Для интеграционных тестов используем тестовую базу данных
             db_host = os.environ.get("DB_HOST", "localhost")
             db_port = os.environ.get("DB_PORT", "5433")
             return (
@@ -56,10 +51,8 @@ class TestSettings(Settings):
     def rabbitmq_url(self) -> str:
         """URL RabbitMQ в зависимости от типа теста"""
         if self.test_type == "unit":
-            # Mock очередь для unit-тестов (без реального RabbitMQ)
             return "memory://"
         elif self.test_type == "integration":
-            # Реальный RabbitMQ для интеграционных тестов
             rabbitmq_host = os.environ.get("RABBITMQ_HOST", "localhost")
             rabbitmq_port = os.environ.get("RABBITMQ_PORT", "5673")
             return (
@@ -70,7 +63,6 @@ class TestSettings(Settings):
             return super().rabbitmq_url
 
 
-# Фабрики настроек для разных типов тестов
 def get_unit_test_settings() -> TestSettings:
     """Настройки для unit-тестов (PostgreSQL с отдельной БД, mock очереди)"""
     return TestSettings(test_type="unit")
@@ -79,3 +71,4 @@ def get_unit_test_settings() -> TestSettings:
 def get_integration_test_settings() -> TestSettings:
     """Настройки для интеграционных тестов (PostgreSQL, RabbitMQ)"""
     return TestSettings(test_type="integration")
+

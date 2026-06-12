@@ -6,7 +6,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    """Configuration of the application through environment variables (.env)."""
+    """Конфигурация приложения через переменные окружения (.env)"""
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -39,46 +39,56 @@ class Settings(BaseSettings):
     def _require(self, value: Optional[str], env_name: str) -> str:
         if value:
             return value
-        raise ValueError(f"{env_name} обязателен for environment: {self.environment}")
+        raise ValueError(f"{env_name} обязателен для окружения: {self.environment}")
+
+    def _get_effective_value(
+        self,
+        value: Optional[str],
+        env_name: str,
+        test_value: str,
+    ) -> str:
+        if self.environment == "test":
+            return test_value
+        return self._require(value, env_name)
 
     @property
     def effective_db_user(self) -> str:
-        return (
-            "test_user"
-            if self.environment == "test"
-            else self._require(self.db_user, "DB_USER")
+        return self._get_effective_value(
+            self.db_user,
+            "DB_USER",
+            "test_user",
         )
 
     @property
     def effective_db_password(self) -> str:
-        return (
-            "test_password"
-            if self.environment == "test"
-            else self._require(self.db_password, "DB_PASSWORD")
+        return self._get_effective_value(
+            self.db_password,
+            "DB_PASSWORD",
+            "test_password",
         )
 
     @property
     def effective_rabbitmq_user(self) -> str:
-        return (
-            "test_rabbit_user"
-            if self.environment == "test"
-            else self._require(self.rabbitmq_user, "RABBITMQ_USER")
+        return self._get_effective_value(
+            self.rabbitmq_user,
+            "RABBITMQ_USER",
+            "test_rabbit_user",
         )
 
     @property
     def effective_rabbitmq_password(self) -> str:
-        return (
-            "test_rabbit_password"
-            if self.environment == "test"
-            else self._require(self.rabbitmq_password, "RABBITMQ_PASSWORD")
+        return self._get_effective_value(
+            self.rabbitmq_password,
+            "RABBITMQ_PASSWORD",
+            "test_rabbit_password",
         )
 
     @property
     def effective_secret_key(self) -> str:
-        return (
-            "test-secret-key-not-secure"
-            if self.environment == "test"
-            else self._require(self.secret_key, "SECRET_KEY")
+        return self._get_effective_value(
+            self.secret_key,
+            "SECRET_KEY",
+            "test-secret-key-not-secure",
         )
 
     @property
@@ -92,7 +102,7 @@ class Settings(BaseSettings):
     @property
     def rabbitmq_url(self) -> str:
         if self.environment == "test":
-            # For integration tests use localhost:5673
+            # Для интеграционных тестов используем localhost:5673
             return (
                 f"amqp://{self.effective_rabbitmq_user}:"
                 f"{self.effective_rabbitmq_password}@localhost:5673/"
