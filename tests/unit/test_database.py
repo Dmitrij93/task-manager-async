@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from database import get_db
+from app.core.database import get_db
 
 
 class TestDatabase:
@@ -28,7 +28,7 @@ class TestDatabase:
 
         mock_session_maker = MagicMock(return_value=mock_session)
 
-        with patch("database.AsyncSessionLocal", mock_session_maker):
+        with patch("app.core.database.AsyncSessionLocal", mock_session_maker):
             # Получаем генератор
             gen = get_db()
             # Получаем сессию из генератора
@@ -66,7 +66,7 @@ class TestDatabase:
 
         # Импортируем Settings здесь, чтобы он подхватил
         # новые переменные окружения
-        from config import Settings
+        from app.core.config import Settings
 
         # Однако, pydantic-settings кэширует конфигурацию,
         # поэтому мы можем создать новый экземпляр

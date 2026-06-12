@@ -4,9 +4,9 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 import sqlalchemy as sa
 
-from crud import task_crud
-from models import Task, TaskPriority, TaskStatus
-from schemas import TaskCreate, TaskFilters
+from app.crud import task_crud
+from app.models import Task, TaskPriority, TaskStatus
+from app.schemas import TaskCreate, TaskFilters
 
 
 @pytest.fixture

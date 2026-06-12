@@ -5,7 +5,7 @@
 import os
 from typing import Any
 
-from config import Settings
+from app.core.config import Settings
 from pydantic import PrivateAttr
 
 

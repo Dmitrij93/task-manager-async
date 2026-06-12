@@ -3,10 +3,10 @@ import json
 import traceback  # Добавлен импорт
 import uuid
 
-from crud import task_crud
-from database import AsyncSessionLocal
-from models import TaskStatus
-from rabbitmq import QUEUE_NAME, rabbitmq
+from app.crud import task_crud
+from app.core.database import AsyncSessionLocal
+from app.models import TaskStatus
+from app.core.rabbitmq import QUEUE_NAME, rabbitmq
 
 
 async def process_one(task_id: uuid.UUID) -> None:
@@ -74,4 +74,3 @@ async def main() -> None:
 
 if __name__ == "__main__":
     asyncio.run(main())
-

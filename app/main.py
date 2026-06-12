@@ -5,10 +5,10 @@ from typing import AsyncGenerator
 import uvicorn  # noqa: F401
 from fastapi import FastAPI
 
-from api.v1.tasks import router as tasks_router
-from config import settings
-from database import create_tables
-from rabbitmq import rabbitmq
+from app.api.v1.tasks import router as tasks_router
+from app.core.config import settings
+from app.core.database import create_tables
+from app.core.rabbitmq import rabbitmq
 
 # Таймаут подключения к RabbitMQ при старте API
 RABBITMQ_CONNECT_TIMEOUT_SECONDS = 3.0
@@ -59,7 +59,7 @@ async def root() -> dict[str, str]:
 
 if __name__ == "__main__":
     uvicorn.run(
-        "main:app",
+        "app.main:app",
         host=settings.host,
         port=settings.port,
         reload=settings.debug,

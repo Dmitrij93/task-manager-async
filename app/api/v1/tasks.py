@@ -4,11 +4,11 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from crud import task_crud
-from database import get_db
-from models import Task, TaskPriority, TaskStatus
-from rabbitmq import RabbitMQ, rabbitmq
-from schemas import (
+from app.crud import task_crud
+from app.core.database import get_db
+from app.models import Task, TaskPriority, TaskStatus
+from app.core.rabbitmq import RabbitMQ, rabbitmq
+from app.schemas import (
     TaskCreate,
     TaskFilters,
     TaskListResponse,

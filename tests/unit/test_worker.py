@@ -3,10 +3,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from models import TaskStatus
+from app.models import TaskStatus
 
 # Change import to match worker.py
-from worker import process_one
+from app.worker import process_one
 
 
 @pytest.mark.asyncio
@@ -21,13 +21,13 @@ async def test_process_task_success():
     mock_task.priority = "MEDIUM"
 
     # Настройка мока для task_crud
-    with patch("worker.task_crud") as mock_crud:
+    with patch("app.worker.task_crud") as mock_crud:
         # Используем AsyncMock для асинхронных методов
         mock_crud.get_by_id = AsyncMock(return_value=mock_task)
         mock_crud.update_status = AsyncMock(return_value=mock_task)
 
         # Мокаем AsyncSessionLocal
-        with patch("worker.AsyncSessionLocal") as mock_session_local:
+        with patch("app.worker.AsyncSessionLocal") as mock_session_local:
             # Настройка мока сессии как контекстного менеджера
             mock_session_local.return_value.__aenter__.return_value = AsyncMock()
             mock_session_local.return_value.__aexit__.return_value = None
@@ -55,11 +55,11 @@ async def test_process_task_not_found():
     """Тест обработки несуществующей задачи."""
     task_id = uuid.uuid4()
 
-    with patch("worker.task_crud") as mock_crud:
+    with patch("app.worker.task_crud") as mock_crud:
         # Используем AsyncMock для асинхронных методов
         mock_crud.get_by_id = AsyncMock(return_value=None)
 
-        with patch("worker.AsyncSessionLocal") as mock_session_local:
+        with patch("app.worker.AsyncSessionLocal") as mock_session_local:
             mock_session_local.return_value.__aenter__.return_value = AsyncMock()
             mock_session_local.return_value.__aexit__.return_value = None
 

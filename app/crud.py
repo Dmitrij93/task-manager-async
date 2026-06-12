@@ -5,8 +5,8 @@ from typing import Any, List, Optional, Tuple
 from sqlalchemy import asc, desc, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from models import Task, TaskStatus
-from schemas import TaskCreate, TaskFilters
+from app.models import Task, TaskStatus
+from app.schemas import TaskCreate, TaskFilters
 
 
 class TaskCRUD:

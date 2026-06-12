@@ -8,7 +8,7 @@ from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from models import TaskPriority, TaskStatus
+from app.models import TaskPriority, TaskStatus
 
 
 class TaskBase(BaseModel):

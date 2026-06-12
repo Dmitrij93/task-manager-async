@@ -6,8 +6,8 @@ from typing import Any, Optional
 
 import aio_pika
 
-from config import settings as default_settings
-from models import TaskPriority
+from app.core.config import settings as default_settings
+from app.models import TaskPriority
 
 QUEUE_NAME = "tasks"
 MAX_PRIORITY = 10

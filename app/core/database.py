@@ -7,8 +7,8 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 
-from config import settings
-from models import Base
+from app.core.config import settings
+from app.models import Base
 
 # Глобальные переменные для отложенной инициализации
 _engine: Optional[AsyncEngine] = None

@@ -7,9 +7,9 @@ import uuid
 from datetime import datetime
 from argparse import Namespace
 
-from database import AsyncSessionLocal
-from models import Task, TaskPriority, TaskStatus
-from rabbitmq import rabbitmq
+from app.core.database import AsyncSessionLocal
+from app.models import Task, TaskPriority, TaskStatus
+from app.core.rabbitmq import rabbitmq
 
 
 def parse_args() -> Namespace:

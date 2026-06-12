@@ -2,7 +2,7 @@ import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
-from models import Base
+from app.models import Base
 
 # Используем TestSettings для интеграционных тестов
 from test_config import get_integration_test_settings
@@ -50,10 +50,10 @@ async def db_session(engine):
 @pytest_asyncio.fixture(scope="function")
 async def client(db_session):
     """Асинхронный клиент для тестирования API с подменой зависимостей."""
-    from api.v1.tasks import get_rabbitmq  # Импортируем функцию get_rabbitmq
-    from database import get_db
-    from main import app
-    from rabbitmq import RabbitMQ  # Импортируем класс RabbitMQ
+    from app.api.v1.tasks import get_rabbitmq  # Импортируем функцию get_rabbitmq
+    from app.core.database import get_db
+    from app.main import app
+    from app.core.rabbitmq import RabbitMQ  # Импортируем класс RabbitMQ
 
     # Переопределяем зависимость get_db для использования тестовой сессии
     async def override_get_db():
